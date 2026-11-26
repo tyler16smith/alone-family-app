@@ -17,6 +17,7 @@ const CAUSE_LABEL: Record<Cause, string> = {
   exposure: "Cold & wet",
   injury: "Injury",
   mental: "Missed home",
+  rescued: "Needed rescuing",
 };
 
 export default function Results({ result, state, simulating, onRerun, onBack }: {
@@ -126,6 +127,7 @@ export default function Results({ result, state, simulating, onRerun, onBack }: 
             <Meter label="Fitness" v={openStat.scores.fitness} />
             <Meter label="Mental" v={openStat.scores.mental} />
             <Meter label="Injury risk" v={openStat.scores.injuryRisk} />
+            {openStat.scores.independence !== undefined && <Meter label="Can go it alone" v={openStat.scores.independence} />}
           </div>
           <p className="muted small">
             Wins {openStat.winPct}% · average place {openStat.avgPlace} · usually out around day {openStat.medianDayOut}

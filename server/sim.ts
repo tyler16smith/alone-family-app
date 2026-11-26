@@ -54,7 +54,10 @@ export function runSeason(players: SimPlayer[], loc: Location, rand: () => numbe
       const gain = rand() < catchChance ? 2 + rand() * 6 : 0;
       l.energy = Math.min(100, l.energy - drain + gain);
 
+      // Can't function alone (toddlers, someone on a walker): near-certain pull in the first day or two.
+      const indep = s.independence ?? 10;
       const hazards: [Cause, number][] = [
+        ["rescued", indep < 5 ? ((5 - indep) / 5) ** 2 * 0.97 : 0],
         ["starvation", l.energy < 40 ? ((40 - l.energy) / 40) ** 2 * 0.15 * (1.25 - s.mental * 0.04) : 0],
         ["exposure", Math.max(0, (cold + loc.wet) / 2 - warmth) * 0.0025 * (storm ? 3 : 1)],
         ["injury", (0.0006 + s.injuryRisk * 0.0005) * (predatorDay ? 1 + loc.predators * 0.6 : 1)],

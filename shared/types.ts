@@ -36,10 +36,12 @@ export type Scores = {
   fitness: number;
   mental: number;
   injuryRisk: number;
+  // 0 = can't survive alone at all (babies, toddlers), 10 = fully capable adult. Missing on older results.
+  independence?: number;
   note: string; // one-line justification
 };
 
-export type Cause = "starvation" | "exposure" | "injury" | "mental" | "winner";
+export type Cause = "starvation" | "exposure" | "injury" | "mental" | "rescued" | "winner";
 
 export type PlayerStats = {
   playerId: number;
