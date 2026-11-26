@@ -57,6 +57,7 @@ export default function Host() {
   const joinUrl = `${meta?.lanOrigin ?? window.location.origin}/s/${code}`;
   const open = state.players.find((p) => p.id === openId) ?? null;
   const loc = state.season.location;
+  const joinedCount = state.players.filter((p) => p.joined).length;
 
   return (
     <div className={`host ${open ? "with-panel" : ""}`}>
@@ -70,6 +71,18 @@ export default function Host() {
           <div className="loc-name">{loc.name}</div>
           <div className="muted small">{loc.blurb}</div>
           <button className="link" onClick={() => setChangingLoc((v) => !v)}>{changingLoc ? "Close" : "Change location"}</button>
+        </div>
+        <div className="side-actions">
+          <a className="link" href="/">New season</a>
+          <button
+            className="link danger"
+            onClick={async () => {
+              if (!confirm(`Delete season ${code}? This removes everyone's entries and results for it.`)) return;
+              try { await api.deleteSeason(code); window.location.href = "/"; } catch (e) { fail(e); }
+            }}
+          >
+            End &amp; delete season
+          </button>
         </div>
       </aside>
 
@@ -91,24 +104,24 @@ export default function Host() {
         )}
 
         <div className="row between">
-          <h2 className="section-title">Contestants <span className="count">{state.players.length}</span></h2>
+          <h2 className="section-title">Contestants <span className="count">{joinedCount} of {state.players.length} joined</span></h2>
           <div className="row">
             {state.latest && <button className="btn ghost" onClick={() => setResult(state.latest)}>Last results</button>}
-            <button className="btn big fire" disabled={state.players.length < 2 || simulating} onClick={simulate}>
+            <button className="btn big fire" disabled={joinedCount < 2 || simulating} onClick={simulate}>
               {simulating ? "Simulating 1,000 seasons…" : state.latest ? "Run it again" : "Simulate"}
             </button>
           </div>
         </div>
         {err && <p className="error">{err}</p>}
-        {state.players.length < 2 && <p className="muted">Waiting for at least two people to join…</p>}
+        {joinedCount < 2 && <p className="muted">Waiting for at least two people to scan in…</p>}
 
         <div className="roster">
           {state.players.map((p) => (
-            <button key={p.id} className={`roster-row ${openId === p.id ? "on" : ""}`} onClick={() => setOpenId(openId === p.id ? null : p.id)}>
+            <button key={p.id} className={`roster-row ${openId === p.id ? "on" : ""} ${p.joined ? "" : "waiting"}`} onClick={() => setOpenId(openId === p.id ? null : p.id)}>
               <span className="avatar">{p.name.slice(0, 1).toUpperCase()}</span>
               <span className="roster-name">{p.name}</span>
-              <span className="muted small">{p.items.length} item{p.items.length === 1 ? "" : "s"}</span>
-              <span className={`dot ${p.bio || p.items.length ? "ready" : ""}`} title={p.bio || p.items.length ? "Ready" : "Hasn't filled anything in"} />
+              <span className="muted small">{p.joined ? `${p.items.length} item${p.items.length === 1 ? "" : "s"}` : "hasn't scanned in"}</span>
+              <span className={`dot ${p.joined ? "ready" : ""}`} title={p.joined ? "Joined" : "Hasn't scanned in yet"} />
             </button>
           ))}
         </div>

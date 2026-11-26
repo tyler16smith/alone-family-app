@@ -29,6 +29,19 @@ export const SCHEMA = [
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (season_id, name)
   )`,
+  // Private family roster: only readable with the host key; copied into each new season.
+  `CREATE TABLE IF NOT EXISTS roster (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    bio TEXT NOT NULL DEFAULT '',
+    skills TEXT NOT NULL DEFAULT '',
+    sort INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS roster_name_key ON roster (lower(name))`,
+  // joined = false: seeded from the roster but hasn't scanned in yet. roster_id links seasons to the same person.
+  `ALTER TABLE players ADD COLUMN IF NOT EXISTS joined BOOLEAN NOT NULL DEFAULT true`,
+  `ALTER TABLE players ADD COLUMN IF NOT EXISTS roster_id INT REFERENCES roster(id) ON DELETE SET NULL`,
   `CREATE TABLE IF NOT EXISTS score_cache (
     hash TEXT PRIMARY KEY,
     scores JSONB NOT NULL,

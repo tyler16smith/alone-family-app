@@ -25,7 +25,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   return json as T;
 }
 
-export type Meta = { locations: Location[]; roster: { name: string; bio: string; skills?: string }[]; lanOrigin: string | null };
+export type Meta = { locations: Location[]; lanOrigin: string | null };
 
 export type LocationPick = { locationId: string } | { customName: string };
 
@@ -39,4 +39,5 @@ export const api = {
   savePlayer: (p: Pick<Player, "id" | "bio" | "skills" | "items">) => call<Player>("PUT", `/players/${p.id}`, p),
   removePlayer: (id: number) => call<{ ok: true }>("DELETE", `/players/${id}`),
   simulate: (code: string) => call<SimResult>("POST", `/seasons/${code}/simulate`),
+  deleteSeason: (code: string) => call<{ ok: true }>("DELETE", `/seasons/${code}`),
 };

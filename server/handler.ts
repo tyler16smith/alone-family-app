@@ -5,7 +5,8 @@ import { simulate, median } from "./sim.js";
 import { scoreHash, scoreWithClaude, scoreWithKeywords } from "./score.js";
 import { narrate, templateReason } from "./narrate.js";
 import { resolveLocation } from "./location.js";
-import { LOCATIONS, MAX_ITEMS, MAX_TEXT, ROSTER } from "../shared/data.js";
+import { LOCATIONS, MAX_ITEMS, MAX_TEXT } from "../shared/data.js";
+import { getRoster, seedSeason, setRoster } from "./roster.js";
 import type { Cause, Finish, Location, Player, PlayerStats, Scores, Season, SeasonState, SimResult } from "../shared/types.js";
 
 type Req = { method: string; path: string; body: any; headers: Record<string, string | string[] | undefined> };
@@ -26,7 +27,7 @@ function requireHost(req: Req) {
 }
 
 const toPlayer = (r: Row): Player => ({
-  id: r.id, name: r.name, bio: r.bio, skills: r.skills, items: r.items, updatedAt: new Date(r.updated_at).toISOString(),
+  id: r.id, name: r.name, bio: r.bio, skills: r.skills, items: r.items, joined: r.joined, updatedAt: new Date(r.updated_at).toISOString(),
 });
 
 async function getSeasonRow(code: string) {
@@ -45,7 +46,7 @@ async function seasonState(code: string): Promise<SeasonState> {
 
 function newCode() {
   const A = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // no I/O to avoid confusion
-  return Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join("");
+  return Array.from({ length: 6 }, () => A[Math.floor(Math.random() * A.length)]).join("");
 }
 
 function cleanText(v: unknown) {
@@ -98,8 +99,8 @@ async function getScores(players: Player[], loc: Location): Promise<{ scores: Ma
 async function runSimulation(code: string): Promise<SimResult> {
   const s = await getSeasonRow(code);
   const loc: Location = s.location;
-  const players = (await q("SELECT * FROM players WHERE season_id = $1", [s.id])).map(toPlayer);
-  if (players.length < 2) throw new HttpError(400, "Need at least 2 players to simulate");
+  const players = (await q("SELECT * FROM players WHERE season_id = $1 AND joined", [s.id])).map(toPlayer);
+  if (players.length < 2) throw new HttpError(400, "Need at least 2 people joined to simulate");
 
   const { scores, by } = await getScores(players, loc);
   const runs = 1000;
@@ -169,8 +170,16 @@ export async function handle(req: Req): Promise<Res> {
       const [r] = await q("SELECT now() AS now, (SELECT count(*) FROM seasons)::int AS seasons");
       return ok({ ok: true, db: r, ai: !!process.env.ANTHROPIC_API_KEY, hostKey: !!process.env.HOST_KEY });
     }
-    if (m === "GET" && a === "meta") return ok({ locations: LOCATIONS, roster: ROSTER, lanOrigin: lanOrigin(req) });
+    if (m === "GET" && a === "meta") return ok({ locations: LOCATIONS, lanOrigin: lanOrigin(req) });
     if (m === "GET" && a === "host-check") { requireHost(req); return ok({ ok: true }); }
+
+    if (a === "roster" && !b) {
+      requireHost(req);
+      if (m === "GET") return ok(await getRoster());
+      if (m === "PUT") {
+        try { return ok(await setRoster(req.body)); } catch (e) { throw new HttpError(400, (e as Error).message); }
+      }
+    }
 
     if (a === "seasons" && !b && m === "POST") {
       requireHost(req);
@@ -178,14 +187,20 @@ export async function handle(req: Req): Promise<Res> {
       if (!loc) throw new HttpError(400, "Unknown location");
       for (let i = 0; i < 5; i++) {
         const code = newCode();
-        const rows = await q("INSERT INTO seasons (code, location) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING RETURNING code", [code, JSON.stringify(loc)]);
-        if (rows.length) return ok({ code });
+        const [row] = await q("INSERT INTO seasons (code, location) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING RETURNING id, code", [code, JSON.stringify(loc)]);
+        if (row) { await seedSeason(row.id); return ok({ code }); }
       }
       throw new HttpError(500, "Could not allocate a code");
     }
 
     if (a === "seasons" && b) {
       if (m === "GET" && !c) return ok(await seasonState(b));
+
+      if (m === "DELETE" && !c) {
+        requireHost(req);
+        await q("DELETE FROM seasons WHERE code = $1", [b.toUpperCase()]);
+        return ok({ ok: true });
+      }
 
       if (m === "PUT" && c === "location") {
         requireHost(req);
@@ -200,14 +215,13 @@ export async function handle(req: Req): Promise<Res> {
         const name = String(req.body?.name ?? "").trim().slice(0, 40);
         if (!name) throw new HttpError(400, "Name required");
         const [existing] = await q("SELECT * FROM players WHERE season_id = $1 AND lower(name) = lower($2)", [s.id, name]);
-        if (existing) return ok(toPlayer(existing));
-        // Prefill from this person's most recent entry in an earlier season, else the roster preset.
-        const [prev] = await q("SELECT bio, skills, items FROM players WHERE lower(name) = lower($1) ORDER BY updated_at DESC LIMIT 1", [name]);
-        const preset = ROSTER.find((r) => r.name.toLowerCase() === name.toLowerCase());
-        const [row] = await q(
-          "INSERT INTO players (season_id, name, bio, skills, items) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-          [s.id, preset?.name ?? name, prev?.bio ?? preset?.bio ?? "", prev?.skills ?? preset?.skills ?? "", JSON.stringify(prev?.items ?? [])],
-        );
+        if (existing) {
+          // Roster people were pre-created for this season; scanning in marks them as joined.
+          if (!existing.joined) { await q("UPDATE players SET joined = true WHERE id = $1", [existing.id]); existing.joined = true; }
+          return ok(toPlayer(existing));
+        }
+        // Someone not on the roster starts blank (no lookups across seasons, so nobody can pull another season's bios).
+        const [row] = await q("INSERT INTO players (season_id, name) VALUES ($1, $2) RETURNING *", [s.id, name]);
         return ok(toPlayer(row));
       }
 
@@ -218,7 +232,7 @@ export async function handle(req: Req): Promise<Res> {
       const id = Number(b);
       if (m === "PUT") {
         const [row] = await q(
-          "UPDATE players SET bio = $2, skills = $3, items = $4, updated_at = now() WHERE id = $1 RETURNING *",
+          "UPDATE players SET bio = $2, skills = $3, items = $4, joined = true, updated_at = now() WHERE id = $1 RETURNING *",
           [id, cleanText(req.body?.bio), cleanText(req.body?.skills), JSON.stringify(cleanItems(req.body?.items))],
         );
         if (!row) throw new HttpError(404, "Player not found");

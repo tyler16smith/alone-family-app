@@ -2,19 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Player, SeasonState, SimResult } from "../../shared/types";
 import { MAX_ITEMS, MAX_TEXT, QUICK_ITEMS } from "../../shared/data";
-import { api, type Meta } from "../api";
+import { api } from "../api";
 
 // What each family member sees after scanning the QR code.
 export default function Phone() {
   const code = useParams().code!.toUpperCase();
   const storeKey = `alone.player.${code}`;
   const [state, setState] = useState<SeasonState | null>(null);
-  const [meta, setMeta] = useState<Meta | null>(null);
   const [me, setMe] = useState<Player | null>(null);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    api.meta().then(setMeta).catch(() => {});
     api.season(code).then((s) => {
       setState(s);
       const id = Number(localStorage.getItem(storeKey));
@@ -27,13 +25,12 @@ export default function Phone() {
   }, [code, storeKey]);
 
   if (err) return <div className="page narrow"><div className="card"><h2>Hmm.</h2><p className="error">{err}</p><a className="link" href="/join">Try another code</a></div></div>;
-  if (!state || !meta) return <div className="page narrow"><p className="muted center">Loading…</p></div>;
+  if (!state) return <div className="page narrow"><p className="muted center">Loading…</p></div>;
 
   if (!me) {
     return (
       <PickName
         state={state}
-        roster={meta.roster.map((r) => r.name)}
         onPick={async (name) => {
           const p = await api.join(code, name);
           localStorage.setItem(storeKey, String(p.id));
@@ -56,16 +53,11 @@ export default function Phone() {
   );
 }
 
-function PickName({ state, roster, onPick }: { state: SeasonState; roster: string[]; onPick: (name: string) => Promise<void> }) {
+function PickName({ state, onPick }: { state: SeasonState; onPick: (name: string) => Promise<void> }) {
   const [other, setOther] = useState("");
   const [busy, setBusy] = useState("");
-  const names = useMemo(() => {
-    const all = new Map<string, string>();
-    for (const n of roster) all.set(n.toLowerCase(), n);
-    for (const p of state.players) all.set(p.name.toLowerCase(), p.name);
-    return [...all.values()].sort((a, b) => a.localeCompare(b));
-  }, [roster, state.players]);
-  const joined = new Set(state.players.map((p) => p.name.toLowerCase()));
+  const names = useMemo(() => state.players.map((p) => p.name).sort((a, b) => a.localeCompare(b)), [state.players]);
+  const joined = new Set(state.players.filter((p) => p.joined).map((p) => p.name.toLowerCase()));
 
   const pick = async (n: string) => { setBusy(n); try { await onPick(n); } finally { setBusy(""); } };
 

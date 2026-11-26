@@ -30,7 +30,9 @@ npm run deploy
 | `HOST_KEY` | for deploys | Protects host actions. Open `/?host=<key>` once on the host device |
 
 ## Customize
-- **Family roster + preset bios:** `shared/data.ts` → `ROSTER`
+- **Family roster + preset bios/skills:** kept privately in the database (never in git or public endpoints).
+  Put them in `roster.private.json` (gitignored), as `[{ "name": "Mom", "bio": "...", "skills": "..." }]`, then run `npm run roster:load`.
+  The list replaces the roster. Each new season copies the roster in, so only people with that season's code can see it.
 - **Locations, quick-pick items, item cap:** `shared/data.ts`
 - **Simulation tuning:** `server/sim.ts`
 

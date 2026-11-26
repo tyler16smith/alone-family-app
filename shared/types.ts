@@ -17,8 +17,11 @@ export type Player = {
   bio: string;
   skills: string;
   items: string[];
+  joined: boolean; // false = seeded from the roster, hasn't scanned in yet
   updatedAt: string;
 };
+
+export type RosterPerson = { name: string; bio: string; skills: string };
 
 export type Season = {
   code: string;

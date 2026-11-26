@@ -51,7 +51,7 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .input, .code-input { width: 100%; background: #0c1510; border: 1px solid var(--line); border-radius: 10px; padding: .75rem .9rem; color: var(--text); font: inherit; font-size: 16px; }
 textarea.input { resize: vertical; }
 .input:focus, .code-input:focus { outline: 2px solid var(--fire); border-color: transparent; }
-.code-input { text-align: center; font-size: 2.5rem; letter-spacing: .5em; font-weight: 800; text-transform: uppercase; }
+.code-input { text-align: center; font-size: 2.2rem; letter-spacing: .3em; font-weight: 800; text-transform: uppercase; }
 .label { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: .5rem; }
 .count { color: var(--muted); font-weight: 500; font-size: .85rem; }
 .count.warn { color: var(--fire2); }
@@ -105,6 +105,9 @@ textarea.input { resize: vertical; }
 .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .6rem; margin-top: 1rem; }
 .roster-row { display: flex; align-items: center; gap: .75rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: .75rem 1rem; text-align: left; }
 .roster-row.on { border-color: var(--fire); }
+.roster-row.waiting { opacity: .55; border-style: dashed; }
+.side-actions { display: flex; justify-content: space-between; margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.side-actions .link.danger { margin-top: 0; }
 .roster-name { font-weight: 700; flex: 1; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; background: #2b4436; display: grid; place-items: center; font-weight: 800; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: #3a4a41; }

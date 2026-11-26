@@ -1,11 +1,5 @@
 import type { Location } from "./types.js";
 
-// Family roster: names shown on the phone's "Select your name" screen, with preset bios/skills.
-// Edit this list, then redeploy. Anyone not on it can tap "I'm not on the list".
-export const ROSTER: { name: string; bio: string; skills?: string }[] = [
-  // { name: "Grandpa Joe", bio: "Retired farmer, has never once been cold.", skills: "Fixes anything with baling wire." },
-];
-
 export const QUICK_ITEMS = [
   "Knife",
   "Ferro rod",

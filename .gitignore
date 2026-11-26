@@ -25,3 +25,6 @@ dist-ssr
 .neon
 .vercel
 .env*
+
+# Private family roster (load with npm run roster:load)
+roster.private.json

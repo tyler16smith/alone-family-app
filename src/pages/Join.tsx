@@ -11,8 +11,8 @@ export default function Join() {
         <p className="sub">Enter the season code on the TV</p>
       </header>
       <form className="card" onSubmit={(e) => { e.preventDefault(); if (code.trim()) nav(`/s/${code.trim().toUpperCase()}`); }}>
-        <input className="code-input" maxLength={4} autoFocus placeholder="ABCD" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
-        <button className="btn big full" disabled={code.trim().length !== 4}>Join</button>
+        <input className="code-input" maxLength={6} autoFocus placeholder="ABCDEF" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+        <button className="btn big full" disabled={code.trim().length !== 6}>Join</button>
       </form>
     </div>
   );

@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "db:migrate": "tsx --env-file=.env.local server/migrate.ts",
-    "deploy": "vercel deploy --prod"
+    "deploy": "vercel deploy --prod",
+    "roster:load": "tsx --env-file=.env.local server/roster-load.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
