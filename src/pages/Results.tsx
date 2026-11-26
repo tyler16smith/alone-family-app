@@ -4,6 +4,13 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContaine
 import type { Cause, SeasonState, SimResult } from "../../shared/types";
 import { Meter, PlayerDetail } from "../components";
 
+// Dark tooltip with light text (Recharts defaults the item text to black).
+const TOOLTIP = {
+  contentStyle: { background: "#16241d", border: "1px solid #2c4136", borderRadius: 10 },
+  labelStyle: { color: "#eef0e8", fontWeight: 700 },
+  itemStyle: { color: "#ffd166" },
+};
+
 const CAUSE_LABEL: Record<Cause, string> = {
   winner: "Winner",
   starvation: "Starvation",
@@ -81,7 +88,7 @@ export default function Results({ result, state, simulating, onRerun, onBack }: 
               <BarChart data={winChart} layout="vertical" margin={{ left: 10, right: 30 }}>
                 <XAxis type="number" unit="%" stroke="#9aa59d" fontSize={12} />
                 <YAxis type="category" dataKey="name" width={90} stroke="#c8d0ca" fontSize={13} />
-                <Tooltip formatter={(v) => [`${v}%`, "Win chance"]} contentStyle={{ background: "#16241d", border: "1px solid #2c4136" }} />
+                <Tooltip formatter={(v) => [`${v}%`, "Win chance"]} {...TOOLTIP} cursor={{ fill: "#ffffff0d" }} />
                 <Bar dataKey="win" radius={[0, 4, 4, 0]} label={{ position: "right", fill: "#c8d0ca", fontSize: 12, formatter: (v: unknown) => `${v}%` }}>
                   {winChart.map((d, i) => <Cell key={d.id} fill={i === 0 ? "#ff7a1a" : "#5f8f73"} />)}
                 </Bar>
@@ -97,7 +104,7 @@ export default function Results({ result, state, simulating, onRerun, onBack }: 
                 <CartesianGrid stroke="#243a2f" vertical={false} />
                 <XAxis dataKey="day" stroke="#9aa59d" fontSize={12} />
                 <YAxis unit="%" stroke="#9aa59d" fontSize={12} domain={[0, 100]} />
-                <Tooltip formatter={(v) => [`${v}%`, "Still in"]} labelFormatter={(d) => `Day ${d}`} contentStyle={{ background: "#16241d", border: "1px solid #2c4136" }} />
+                <Tooltip formatter={(v) => [`${v}%`, "Still in"]} cursor={{ stroke: "#ff7a1a66" }} labelFormatter={(d) => `Day ${d}`} {...TOOLTIP} />
                 <Area dataKey="pctIn" stroke="#ff7a1a" fill="#ff7a1a33" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
