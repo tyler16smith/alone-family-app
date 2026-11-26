@@ -13,7 +13,7 @@ npm run dev          # http://localhost:5173 (phones on the same Wi-Fi use the Q
 https://alone-family-app.vercel.app. Phones join at `/join` or by scanning the QR code on the host screen.
 The host opens `https://alone-family-app.vercel.app/?host=<HOST_KEY>` once (the key is in `.env.host.local`).
 
-Deploy changes with `npm run deploy`.
+Pushing to `main` deploys to production automatically (the GitHub repo is connected to Vercel). `npm run deploy` still works for a manual deploy.
 
 ## Adding the Anthropic key
 ```bash
