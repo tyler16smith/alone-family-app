@@ -1,9 +1,9 @@
 // Monte Carlo season simulator. Pure functions, no I/O.
-import type { Cause, Location, Scores } from "../shared/types.js";
+import type { Cause, Location, Scores, SeasonFacts } from "../shared/types.js";
 
 export type SimPlayer = { id: number; name: string; scores: Scores };
 
-export type RunFinish = { id: number; place: number; day: number; cause: Cause };
+export type RunFinish = { id: number; place: number; day: number; cause: Cause; facts: SeasonFacts };
 
 export type Aggregate = {
   perPlayer: Map<number, { wins: number; placeSum: number; daysOut: number[]; causes: Record<string, number> }>;
@@ -25,19 +25,27 @@ export function rng(seed: number) {
   };
 }
 
-type Live = { p: SimPlayer; energy: number };
+type Live = { p: SimPlayer; energy: number; start: number; meals: number; storms: number; scares: number };
+
+// Energy points to pounds: a steady baseline loss plus whatever reserves were burned.
+const lbs = (l: Live, days: number) => {
+  const v = days * 0.35 + Math.max(0, l.start - l.energy) * 0.35;
+  return v < 10 ? Math.round(v * 10) / 10 : Math.round(v);
+};
+const factsOf = (l: Live, days: number): SeasonFacts => ({ lbsLost: lbs(l, days), mealsCaught: l.meals, storms: l.storms, predatorScares: l.scares });
 
 /** One season. Returns finishes ordered by place (1 = winner). */
 export function runSeason(players: SimPlayer[], loc: Location, rand: () => number): RunFinish[] {
-  const live: Live[] = players.map((p) => ({ p, energy: 70 + p.scores.fitness * 3 }));
-  const out: { id: number; day: number; cause: Cause; energy: number }[] = [];
+  const live: Live[] = players.map((p) => { const e = 70 + p.scores.fitness * 3; return { p, energy: e, start: e, meals: 0, storms: 0, scares: 0 }; });
+  const out: { id: number; day: number; cause: Cause; energy: number; facts: SeasonFacts }[] = [];
   let storm = 0, bounty = 0, coldSnap = 0;
 
   let day = 0;
   while (live.length > 1 && day < MAX_DAYS) {
     day++;
     // Location-wide events
-    if (storm > 0) storm--; else if (rand() < 0.03 + loc.wet * 0.003) storm = 2 + Math.floor(rand() * 3);
+    let newStorm = false;
+    if (storm > 0) storm--; else if (rand() < 0.03 + loc.wet * 0.003) { storm = 2 + Math.floor(rand() * 3); newStorm = true; }
     if (coldSnap > 0) coldSnap--; else if (day > 20 && rand() < 0.01 + loc.cold * 0.002) coldSnap = 3 + Math.floor(rand() * 4);
     if (bounty > 0) bounty--; else if (rand() < 0.02) bounty = 4;
     const predatorDay = rand() < 0.01 + loc.predators * 0.003;
@@ -47,11 +55,14 @@ export function runSeason(players: SimPlayer[], loc: Location, rand: () => numbe
     const leaving: { l: Live; cause: Cause }[] = [];
     for (const l of live) {
       const s = l.p.scores;
+      if (newStorm) l.storms++;
+      if (predatorDay) l.scares++;
       const warmth = (s.shelter + s.fire) / 2; // 0-10
       // Calories
       const drain = Math.max(0.5, 1.2 + day * 0.008 + cold * 0.12 + (storm ? 0.6 : 0) - warmth * 0.06);
       const catchChance = Math.min(0.9, (0.04 + s.food * 0.045) * (0.4 + loc.foodAbundance / 10) * (bounty ? 1.8 : 1) * (storm ? 0.5 : 1));
       const gain = rand() < catchChance ? 2 + rand() * 6 : 0;
+      if (gain) l.meals++;
       l.energy = Math.min(100, l.energy - drain + gain);
 
       // Can't function alone (toddlers, someone on a walker): near-certain pull in the first day or two.
@@ -74,16 +85,16 @@ export function runSeason(players: SimPlayer[], loc: Location, rand: () => numbe
       leaving.shift();
     }
     for (const { l, cause } of leaving) {
-      out.push({ id: l.p.id, day, cause, energy: l.energy });
+      out.push({ id: l.p.id, day, cause, energy: l.energy, facts: factsOf(l, day) });
       live.splice(live.indexOf(l), 1);
     }
   }
   // Anyone left at the end: rank by energy; top one is the winner.
   live.sort((a, b) => b.energy - a.energy);
   const finishes: RunFinish[] = [];
-  live.forEach((l, i) => finishes.push({ id: l.p.id, place: i + 1, day, cause: i === 0 ? "winner" : "starvation" }));
+  live.forEach((l, i) => finishes.push({ id: l.p.id, place: i + 1, day, cause: i === 0 ? "winner" : "starvation", facts: factsOf(l, day) }));
   out.sort((a, b) => b.day - a.day || b.energy - a.energy);
-  out.forEach((o) => finishes.push({ id: o.id, place: finishes.length + 1, day: o.day, cause: o.cause }));
+  out.forEach((o) => finishes.push({ id: o.id, place: finishes.length + 1, day: o.day, cause: o.cause, facts: o.facts }));
   return finishes;
 }
 

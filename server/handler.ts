@@ -123,7 +123,7 @@ async function runSimulation(code: string): Promise<SimResult> {
     .sort((x, y) => x.avgPlace - y.avgPlace);
 
   const featured: Finish[] = agg.featured.map((f) => ({
-    playerId: f.id, name: nameOf.get(f.id)!, place: f.place, day: f.day, cause: f.cause,
+    playerId: f.id, name: nameOf.get(f.id)!, place: f.place, day: f.day, cause: f.cause, facts: f.facts,
     reason: templateReason(f.cause, f.day, nameOf.get(f.id)!, loc),
   }));
   const w = featured[0];
@@ -135,6 +135,7 @@ async function runSimulation(code: string): Promise<SimResult> {
       for (const r of n.reasons) {
         const f = featured.find((x) => x.playerId === r.playerId);
         if (f && r.reason) f.reason = r.reason;
+        if (f && r.headline) f.headline = r.headline;
       }
     } catch (e) { console.error("Narration failed, using templates:", e); }
   }

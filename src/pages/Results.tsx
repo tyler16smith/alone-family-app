@@ -3,6 +3,7 @@ import confetti from "canvas-confetti";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Cause, SeasonState, SimResult } from "../../shared/types";
 import { Meter, PlayerDetail } from "../components";
+import Slideshow from "./Slideshow";
 
 // Dark tooltip with light text (Recharts defaults the item text to black).
 const TOOLTIP = {
@@ -25,8 +26,10 @@ export default function Results({ result, state, simulating, onRerun, onBack }: 
 }) {
   const winner = result.featured[0];
   const [openId, setOpenId] = useState<number | null>(null);
+  const [deck, setDeck] = useState(false);
 
   useEffect(() => {
+    if (deck) return;
     const end = Date.now() + 2500;
     const colors = ["#ff7a1a", "#ffd166", "#f4f1de", "#81b29a"];
     (function frame() {
@@ -34,7 +37,9 @@ export default function Results({ result, state, simulating, onRerun, onBack }: 
       confetti({ particleCount: 5, angle: 120, spread: 70, origin: { x: 1 }, colors });
       if (Date.now() < end) requestAnimationFrame(frame);
     })();
-  }, [result.id]);
+  }, [result.id, deck]);
+
+  if (deck) return <Slideshow result={result} state={state} onClose={() => setDeck(false)} />;
 
   const stat = (id: number) => result.stats.find((s) => s.playerId === id);
   const open = state.players.find((p) => p.id === openId);
@@ -49,7 +54,10 @@ export default function Results({ result, state, simulating, onRerun, onBack }: 
           {state.season.location.name} · {result.runs.toLocaleString()} simulated seasons
           {result.scoredBy === "keywords" && " · scored by keywords (add ANTHROPIC_API_KEY for AI scoring)"}
         </div>
-        <button className="btn fire" disabled={simulating} onClick={onRerun}>{simulating ? "Simulating…" : "Run it again"}</button>
+        <div className="row">
+          <button className="btn ghost" onClick={() => setDeck(true)}>▶ Slideshow</button>
+          <button className="btn fire" disabled={simulating} onClick={onRerun}>{simulating ? "Simulating…" : "Run it again"}</button>
+        </div>
       </div>
 
       <section className="winner">

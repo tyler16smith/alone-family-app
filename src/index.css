@@ -155,3 +155,33 @@ textarea.input { resize: vertical; }
   .results-grid { grid-template-columns: 1fr; }
   .host-main { padding: 1.25rem; }
 }
+
+/* slideshow */
+.deck { position: fixed; inset: 0; z-index: 50; background: radial-gradient(1400px 700px at 50% -10%, #23402f 0%, var(--bg) 65%), var(--bg); display: grid; place-items: center; padding: 4vh 6vw; cursor: pointer; user-select: none; overflow: hidden; }
+.deck-close { position: absolute; top: 1.25rem; right: 1.5rem; background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: .4rem .9rem; z-index: 2; }
+.deck-slide { width: min(1200px, 100%); text-align: center; animation: deckIn .45s ease-out; }
+@keyframes deckIn { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+.deck .eyebrow { font-size: clamp(.8rem, 1.4vw, 1.1rem); }
+.deck-title h1 { font-size: clamp(3rem, 8vw, 7rem); font-weight: 900; margin: 1rem 0; line-height: 1.05; }
+.deck-sub { font-size: clamp(1.2rem, 2.4vw, 2rem); }
+.deck-name { font-size: clamp(3.5rem, 10vw, 9rem); font-weight: 900; line-height: 1; margin: .6rem 0 .4rem; }
+.deck-person.won .deck-name { background: linear-gradient(135deg, var(--fire2), var(--fire)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.deck-headline { font-size: clamp(1.4rem, 3vw, 2.6rem); font-style: italic; color: var(--fire2); margin-bottom: 1.2rem; }
+.deck-days { font-size: clamp(1.3rem, 2.6vw, 2.2rem); color: var(--muted); }
+.deck-days b { font-size: clamp(3.5rem, 8vw, 7rem); color: var(--text); margin: 0 .2em; line-height: 1; }
+.deck-days-label { margin-right: .3em; }
+.deck-badge { display: inline-block; margin: 1rem 0 1.6rem; padding: .5rem 1.2rem; border-radius: 999px; background: #23382d; border: 1px solid var(--line); font-size: clamp(1rem, 1.8vw, 1.4rem); font-weight: 700; }
+.deck-badge.gold { background: linear-gradient(135deg, var(--fire2), var(--fire)); color: #1b0d00; border: 0; }
+.deck-facts { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(.5rem, 1.2vw, 1rem); margin-bottom: 1.6rem; }
+.fact { display: flex; flex-direction: column; align-items: center; min-width: clamp(110px, 12vw, 170px); padding: .9rem 1rem; border-radius: 16px; background: var(--bg2); border: 1px solid var(--line); }
+.fact-icon { font-size: clamp(1.4rem, 2.4vw, 2rem); }
+.fact b { font-size: clamp(1.4rem, 2.8vw, 2.4rem); }
+.fact span:last-child { color: var(--muted); font-size: clamp(.75rem, 1.1vw, .95rem); }
+.deck-reason { font-size: clamp(1.15rem, 2.2vw, 1.9rem); max-width: 900px; margin: 0 auto; line-height: 1.4; }
+.deck-final ol { list-style: none; padding: 0; margin: 1.5rem auto 0; max-width: 760px; display: grid; gap: .6rem; }
+.deck-final li { display: grid; grid-template-columns: 3rem 1fr auto; align-items: center; gap: 1rem; padding: .8rem 1.2rem; border-radius: 14px; background: var(--bg2); text-align: left; font-size: clamp(1rem, 2vw, 1.6rem); }
+.deck-final li.first { border: 1px solid var(--fire); }
+.deck-final .place { font-weight: 900; color: var(--muted); text-align: center; }
+.deck-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: #1a2a21; }
+.deck-progress div { height: 100%; background: linear-gradient(90deg, var(--fire2), var(--fire)); transition: width .35s ease; }
+.deck-count { position: absolute; bottom: 1rem; right: 1.5rem; color: var(--muted); font-size: .85rem; }

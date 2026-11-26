@@ -53,6 +53,14 @@ export type PlayerStats = {
   scores: Scores;
 };
 
+/** Things that actually happened to this person in the featured simulated season. */
+export type SeasonFacts = {
+  lbsLost: number;
+  mealsCaught: number;
+  storms: number; // storms lived through
+  predatorScares: number; // days with a predator encounter
+};
+
 export type Finish = {
   playerId: number;
   name: string;
@@ -60,6 +68,8 @@ export type Finish = {
   day: number; // day tapped out (winner: final day)
   cause: Cause;
   reason: string;
+  headline?: string; // short funny slide title (newer results only)
+  facts?: SeasonFacts;
 };
 
 export type SimResult = {
