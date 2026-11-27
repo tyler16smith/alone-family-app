@@ -219,15 +219,18 @@ textarea.input { resize: vertical; }
 .tl-label.edge-left { transform: translateX(-12%); }
 .tl-label.edge-right { transform: translateX(-88%); }
 .tl-label:hover, .tl-stop.current .tl-label { border-color: var(--fire); background: #1f3127; z-index: 6; }
+.tl-stop:hover { z-index: 30; }
+.tl-label:hover { z-index: 31; }
 .tl-name { font-weight: 800; font-size: clamp(.9rem, 1.4vw, 1.1rem); }
 .tl-when { color: var(--muted); font-size: .8rem; }
 
-.tl-pop { position: absolute; left: 50%; width: min(360px, 80vw); white-space: normal; text-align: left; padding: 1rem 1.1rem; border-radius: 14px; background: #101c16; border: 1px solid var(--fire);
-  box-shadow: 0 20px 50px #000a; opacity: 0; visibility: hidden; transform: translate(-50%, 6px); transition: opacity .18s, transform .18s, visibility .18s; pointer-events: none; z-index: 10; }
-.tl-label.above .tl-pop { top: calc(100% + 10px); }
-.tl-label.below .tl-pop { bottom: calc(100% + 10px); }
-.tl-label.edge-left .tl-pop { left: 0; transform: translate(0, 6px); }
-.tl-label.edge-right .tl-pop { left: auto; right: 0; transform: translate(0, 6px); }
+.tl-pop { --nudge: 6px; position: absolute; left: 50%; width: min(360px, 80vw); white-space: normal; text-align: left; padding: 1rem 1.1rem; border-radius: 14px; background: #101c16; border: 1px solid var(--fire);
+  box-shadow: 0 20px 50px #000a; opacity: 0; visibility: hidden; transform: translate(-50%, var(--nudge)); transition: opacity .18s, transform .18s, visibility .18s; pointer-events: none; z-index: 10; }
+.tl-label.above .tl-pop { bottom: calc(100% + 10px); }
+.tl-label.below .tl-pop { top: calc(100% + 10px); }
+.tl-label.above .tl-pop { --nudge: -6px; }
+.tl-label.edge-left .tl-pop { left: 0; transform: translate(0, var(--nudge)); }
+.tl-label.edge-right .tl-pop { left: auto; right: 0; transform: translate(0, var(--nudge)); }
 .tl-label:hover .tl-pop { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 .tl-label.edge-left:hover .tl-pop, .tl-label.edge-right:hover .tl-pop { transform: translate(0, 0); }
 .tl-pop .eyebrow { font-size: .68rem; }
