@@ -77,6 +77,9 @@ textarea.input { resize: vertical; }
 .chip { background: #23382d; border: 1px solid var(--line); border-radius: 999px; padding: .35rem .75rem; font-size: .9rem; }
 .chip.removable span { color: var(--muted); margin-left: .25rem; }
 .chip.ghost { background: transparent; border-style: dashed; color: var(--muted); }
+.bag-full { display: grid; gap: .2rem; margin-top: .75rem; padding: .75rem .9rem; border-radius: 12px; background: #3a2412; border: 1px solid #ff7a1a66; font-size: .92rem; }
+.bag-full span { color: #e7d6c4; }
+.bag-full .left-out { color: var(--fire2); }
 .add-row { display: flex; gap: .5rem; margin-top: .75rem; }
 
 /* phone */

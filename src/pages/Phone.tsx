@@ -96,17 +96,20 @@ function Editor({ player, locationName, onSwitch }: { player: Player; locationNa
 
   const full = items.length >= MAX_ITEMS;
   const dirty = () => setSaved("dirty");
+  const [leftOut, setLeftOut] = useState<string[]>([]); // items that didn't fit on the last add
   const addItems = (text: string) => {
     const add = text.split(",").map((s) => s.trim()).filter(Boolean);
     if (!add.length) return;
-    setItems((cur) => {
-      const next = [...cur];
-      for (const a of add) if (next.length < MAX_ITEMS && !next.some((x) => x.toLowerCase() === a.toLowerCase())) next.push(a);
-      return next;
-    });
+    const next = [...items];
+    const skipped: string[] = [];
+    for (const a of add) {
+      if (next.some((x) => x.toLowerCase() === a.toLowerCase())) continue;
+      if (next.length < MAX_ITEMS) next.push(a); else skipped.push(a);
+    }
+    setItems(next); setLeftOut(skipped);
     setDraft(""); dirty();
   };
-  const removeItem = (i: string) => { setItems((cur) => cur.filter((x) => x !== i)); dirty(); };
+  const removeItem = (i: string) => { setItems((cur) => cur.filter((x) => x !== i)); setLeftOut([]); dirty(); };
 
   async function save() {
     setSaved("saving"); setErr("");
@@ -137,6 +140,13 @@ function Editor({ player, locationName, onSwitch }: { player: Player; locationNa
           ))}
           {!items.length && <span className="muted">Pack up to {MAX_ITEMS} items.</span>}
         </div>
+        {full && (
+          <div className="bag-full" role="status">
+            <b>🎒 Your bag is full: {MAX_ITEMS} of {MAX_ITEMS} items.</b>
+            <span>That's the limit, just like the show. Tap an item above to take it out, then add something else.</span>
+            {leftOut.length > 0 && <span className="left-out">Didn't fit: {leftOut.join(", ")}</span>}
+          </div>
+        )}
         <form className="add-row" onSubmit={(e) => { e.preventDefault(); addItems(draft); }}>
           <input className="input" disabled={full} placeholder={full ? "Bag's full. Remove something to swap" : "Add an item (commas OK)"} value={draft} onChange={(e) => setDraft(e.target.value)} />
           <button className="btn" disabled={full || !draft.trim()}>Add</button>
