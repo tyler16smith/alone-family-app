@@ -109,7 +109,7 @@ export default function Host() {
         <div className="row between">
           <h2 className="section-title">Contestants <span className="count">{joinedCount} of {state.players.length} joined</span></h2>
           <div className="row">
-            {state.latest && <button className="btn ghost" onClick={() => setResult(state.latest)}>Last results</button>}
+            {state.latest && <button className="btn ghost" onClick={() => { setResult(state.latest); setRevealing(true); }}>Last results</button>}
             <button className="btn big fire" disabled={joinedCount < 2 || simulating} onClick={simulate}>
               {simulating ? "Simulating 1,000 seasons…" : state.latest ? "Run it again" : "Simulate"}
             </button>
