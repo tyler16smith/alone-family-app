@@ -6,6 +6,7 @@ import { api, ApiError, type Meta } from "../api";
 import { HostKeyPrompt, LocationPicker, PlayerDetail } from "../components";
 import { lazy, Suspense as ReactSuspense } from "react";
 const Results = lazy(() => import("./Results"));
+import Reveal from "./Reveal";
 
 const POLL_MS = 2500;
 
@@ -15,6 +16,7 @@ export default function Host() {
   const [meta, setMeta] = useState<Meta | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
   const [result, setResult] = useState<SimResult | null>(null);
+  const [revealing, setRevealing] = useState(false); // timeline reveal before a fresh result
   const [simulating, setSimulating] = useState(false);
   const [changingLoc, setChangingLoc] = useState(false);
   const [needKey, setNeedKey] = useState(false);
@@ -36,8 +38,8 @@ export default function Host() {
 
   async function simulate() {
     setSimulating(true); setErr("");
-    const minWait = new Promise((r) => setTimeout(r, 4500)); // let the suspense breathe
-    try { const [r] = await Promise.all([api.simulate(code), minWait]); setResult(r); refresh(); }
+    const minWait = new Promise((r) => setTimeout(r, 3000)); // let the suspense breathe
+    try { const [r] = await Promise.all([api.simulate(code), minWait]); setResult(r); setRevealing(true); refresh(); }
     catch (e) { fail(e); }
     finally { setSimulating(false); }
   }
@@ -46,6 +48,7 @@ export default function Host() {
   if (!state) return <div className="page"><p className="muted center">{err || "Loading season…"}</p></div>;
 
   if (simulating) return <Suspense players={state.players.map((p) => p.name)} place={state.season.location.name} />;
+  if (result && revealing) return <Reveal result={result} state={state} onDone={() => setRevealing(false)} />;
   if (result) {
     return (
       <ReactSuspense fallback={<div className="page"><p className="muted center">Loading results…</p></div>}>
